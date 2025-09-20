@@ -1,3 +1,27 @@
 <resources>
     <string name="app_name">ClockIt</string>
+    <string name="export_to_pdf">Export to PDF</string>
+    <string name="export_success">Exported: %s</string>
+    <string name="export_error">PDF export failed. Please try again.</string>
+    <string name="export_share_title">Share PDF</string>
+    <string name="export_progress_message">Generating PDF…</string>
+    <string name="top_app_bar_more_actions">More actions</string>
+
+    <string name="pdf_title">דו״ח משמרות – %s</string>
+    <string name="pdf_no_shifts">No shifts for this cycle</string>
+    <string name="pdf_col_date">תאריך</string>
+    <string name="pdf_col_duration">משך</string>
+    <string name="pdf_col_km">ק&quot;מ</string>
+    <string name="pdf_col_engine_cc">סמ&quot;ק</string>
+    <string name="pdf_col_hourly_rate">₪/שעה</string>
+    <string name="pdf_col_callouts">הקפצות</string>
+    <string name="pdf_col_stolen">גנוב</string>
+    <string name="pdf_summary_header">סיכום</string>
+    <string name="pdf_total_base">בסיס</string>
+    <string name="pdf_total_ot1">נוספות 1</string>
+    <string name="pdf_total_ot2">נוספות 2</string>
+    <string name="pdf_total_travel">נסיעות</string>
+    <string name="pdf_total_callouts">הקפצות</string>
+    <string name="pdf_total_stolen">גנוב</string>
+    <string name="pdf_total_grand">סה"כ</string>
 </resources>
