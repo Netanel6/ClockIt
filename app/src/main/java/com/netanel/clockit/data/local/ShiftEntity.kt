@@ -14,5 +14,5 @@ data class ShiftEntity(
     val km: Double,
     val engineCc: Int,          // ← חדש
     val callouts: Int,
-    val stolenFound: Int
+    val caughtFound: Int
 )

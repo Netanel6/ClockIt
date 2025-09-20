@@ -61,7 +61,7 @@ class MonthlyViewModel(
 
     private fun calcSummary(shifts: List<Shift>, profile: CalcProfile, ym: YearMonth): MonthlySummary {
         var base = 0.0; var ot1 = 0.0; var ot2 = 0.0
-        var travel = 0.0; var callouts = 0.0; var stolen = 0.0
+        var travel = 0.0; var callouts = 0.0; var caught = 0.0
 
         for (s in shifts) {
             val r = calculator.calculateFromMinutes(
@@ -71,14 +71,14 @@ class MonthlyViewModel(
                 km = s.km,
                 engineCc = s.engineCc,
                 callouts = s.callouts,
-                stolenFound = s.stolenFound,
+                caughtFound = s.caughtFound,
                 profile = profile
             )
             base += r.basePay; ot1 += r.overtime1Pay; ot2 += r.overtime2Pay
-            travel += r.travelPay; callouts += r.calloutsPay; stolen += r.stolenBonusPay
+            travel += r.travelPay; callouts += r.calloutsPay; caught += r.caughtBonusPay
         }
-        val total = base + ot1 + ot2 + travel + callouts + stolen
-        return MonthlySummary(ym, base, ot1, ot2, travel, callouts, stolen, total)
+        val total = base + ot1 + ot2 + travel + callouts + caught
+        return MonthlySummary(ym, base, ot1, ot2, travel, callouts, caught, total)
     }
 
     /** מחזור שמסתיים ב־22 של ym, ומתחיל ב־23 של החודש הקודם */
@@ -104,7 +104,7 @@ class MonthlyViewModel(
                 km = 0.0,
                 engineCc = 2000,
                 callouts = 1,
-                stolenFound = 0
+                caughtFound = 0
             )
             repo.addShift(newShift)
         }

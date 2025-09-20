@@ -97,7 +97,7 @@ class PdfExporter(context: Context) {
             Column(appContext.getString(R.string.pdf_col_engine_cc), 65f, Paint.Align.RIGHT),
             Column(appContext.getString(R.string.pdf_col_hourly_rate), 90f, Paint.Align.RIGHT),
             Column(appContext.getString(R.string.pdf_col_callouts), 60f, Paint.Align.CENTER),
-            Column(appContext.getString(R.string.pdf_col_stolen), 55f, Paint.Align.CENTER)
+            Column(appContext.getString(R.string.pdf_col_caught), 55f, Paint.Align.CENTER)
         )
 
         var pageNumber = 1
@@ -176,7 +176,7 @@ class PdfExporter(context: Context) {
                     integerFormatter.format(shift.engineCc),
                     currencyFormatter.format(shift.hourlyRate),
                     integerFormatter.format(shift.callouts),
-                    integerFormatter.format(shift.stolenFound)
+                    integerFormatter.format(shift.caughtFound)
                 )
                 var x = marginHorizontal
                 values.forEachIndexed { index, value ->
@@ -211,7 +211,7 @@ class PdfExporter(context: Context) {
             R.string.pdf_total_ot2 to summary.totalOt2,
             R.string.pdf_total_travel to summary.totalTravel,
             R.string.pdf_total_callouts to summary.totalCallouts,
-            R.string.pdf_total_stolen to summary.totalStolen,
+            R.string.pdf_total_caught to summary.totalCaught,
             R.string.pdf_total_grand to summary.grandTotal
         )
 

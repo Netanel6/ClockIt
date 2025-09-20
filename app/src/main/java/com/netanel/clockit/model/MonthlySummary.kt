@@ -9,6 +9,6 @@ data class MonthlySummary(
     val totalOt2: Double,
     val totalTravel: Double,
     val totalCallouts: Double,
-    val totalStolen: Double,
+    val totalCaught: Double,
     val grandTotal: Double
 )

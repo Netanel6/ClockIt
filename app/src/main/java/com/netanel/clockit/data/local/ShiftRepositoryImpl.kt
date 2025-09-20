@@ -33,7 +33,7 @@ private fun Shift.toEntity() = ShiftEntity(
     km = km,
     engineCc = engineCc,             // ←
     callouts = callouts,
-    stolenFound = stolenFound
+    caughtFound = caughtFound
 )
 //
 private fun ShiftEntity.toModel() = Shift(
@@ -45,7 +45,7 @@ private fun ShiftEntity.toModel() = Shift(
     km = km,
     engineCc = engineCc,             // ←
     callouts = callouts,
-    stolenFound = stolenFound
+    caughtFound = caughtFound
 )
 
 
