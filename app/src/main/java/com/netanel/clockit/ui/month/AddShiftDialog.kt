@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.consumeWindowInsets // ← NEW
 import androidx.compose.foundation.layout.WindowInsets      // ← NEW
 import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.windowInsetsPadding // ← (optional)
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -26,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -38,8 +38,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.layout.imePadding // ← NEW
 
 import com.netanel.clockit.model.Shift
@@ -57,27 +55,48 @@ fun AddShiftDialog(
     initialDate: LocalDate,
     defaultHourly: Double,
     onDismiss: () -> Unit,
-    onSave: (Shift) -> Unit
+    onSave: (Shift) -> Unit,
+    existingShift: Shift? = null
 ) {
-    // --- States ---
-    var hourly by remember { mutableDoubleStateOf(defaultHourly) }
+    val editingShift = existingShift
+    val initialSelectionMillis = DateUtils.localDateToUtcMillis(editingShift?.date ?: initialDate)
 
-    var hoursText by remember { mutableStateOf("") }
-    var hoursError by remember { mutableStateOf<String?>(null) }
+    var hourly by remember(editingShift?.id) {
+        mutableDoubleStateOf(editingShift?.hourlyRate ?: defaultHourly)
+    }
 
-    var engineCcText by remember { mutableStateOf("2000") }
-    var engineCcError by remember { mutableStateOf<String?>(null) }
+    var hoursText by remember(editingShift?.id) {
+        mutableStateOf(editingShift?.let { formatMinutesAsRaw(it.workedMinutes) } ?: "")
+    }
+    var hoursError by remember(editingShift?.id) { mutableStateOf<String?>(null) }
 
-    var kmText by remember { mutableStateOf("") }
-    var kmError by remember { mutableStateOf<String?>(null) }
+    var engineCcText by remember(editingShift?.id) {
+        mutableStateOf((editingShift?.engineCc ?: 2000).toString())
+    }
+    var engineCcError by remember(editingShift?.id) { mutableStateOf<String?>(null) }
 
-    var callouts by remember { mutableIntStateOf(0) }
-    var stolen by remember { mutableIntStateOf(0) }
-    var isHoliday by remember { mutableStateOf(false) }
+    var kmText by remember(editingShift?.id) {
+        mutableStateOf(editingShift?.km?.toString() ?: "")
+    }
+    var kmError by remember(editingShift?.id) { mutableStateOf<String?>(null) }
+
+    var callouts by remember(editingShift?.id) {
+        mutableIntStateOf(editingShift?.callouts ?: 0)
+    }
+    var stolen by remember(editingShift?.id) {
+        mutableIntStateOf(editingShift?.stolenFound ?: 0)
+    }
+    var isHoliday by remember(editingShift?.id) {
+        mutableStateOf(editingShift?.isHolidayOrShabbat ?: false)
+    }
 
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = DateUtils.localDateToUtcMillis(initialDate)
+        initialSelectedDateMillis = initialSelectionMillis
     )
+
+    LaunchedEffect(editingShift?.id, initialSelectionMillis) {
+        datePickerState.selectedDateMillis = initialSelectionMillis
+    }
 
     val configuration = LocalConfiguration.current
     val maxHeight = (configuration.screenHeightDp * 0.9f).dp
@@ -104,7 +123,10 @@ fun AddShiftDialog(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("הוספת משמרת", style = MaterialTheme.typography.titleLarge)
+                Text(
+                    if (editingShift != null) "עריכת משמרת" else "הוספת משמרת",
+                    style = MaterialTheme.typography.titleLarge
+                )
 
                 DatePicker(
                     state = datePickerState,
@@ -224,20 +246,29 @@ fun AddShiftDialog(
 
                         val date = datePickerState.selectedDateMillis?.let {
                             DateUtils.utcMillisToLocalDate(it)
-                        } ?: initialDate
+                        } ?: editingShift?.date ?: initialDate
 
-                        onSave(
-                            Shift(
-                                date = date,
-                                hourlyRate = hourly,
-                                workedMinutes = workedMinutes,
-                                isHolidayOrShabbat = isHoliday,
-                                km = kmVal,
-                                engineCc = engineCc,
-                                callouts = callouts,
-                                stolenFound = stolen
-                            )
+                        val result = editingShift?.copy(
+                            date = date,
+                            hourlyRate = hourly,
+                            workedMinutes = workedMinutes,
+                            isHolidayOrShabbat = isHoliday,
+                            km = kmVal,
+                            engineCc = engineCc,
+                            callouts = callouts,
+                            stolenFound = stolen
+                        ) ?: Shift(
+                            date = date,
+                            hourlyRate = hourly,
+                            workedMinutes = workedMinutes,
+                            isHolidayOrShabbat = isHoliday,
+                            km = kmVal,
+                            engineCc = engineCc,
+                            callouts = callouts,
+                            stolenFound = stolen
                         )
+
+                        onSave(result)
                     }) {
                         Text("שמור")
                     }
@@ -245,4 +276,10 @@ fun AddShiftDialog(
             }
         }
     }
+}
+
+private fun formatMinutesAsRaw(minutes: Int): String {
+    val hours = (minutes / 60).coerceAtLeast(0)
+    val mins = (minutes % 60).coerceAtLeast(0)
+    return hours.toString().padStart(2, '0') + mins.toString().padStart(2, '0')
 }

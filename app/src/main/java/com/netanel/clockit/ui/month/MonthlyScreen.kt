@@ -1,5 +1,6 @@
 package com.netanel.clockit.ui.month
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,7 +48,8 @@ import java.util.Locale
 @Composable
 fun MonthlyScreen(
     vm: MonthlyViewModel,
-    onAddShift: (LocalDate) -> Unit
+    onAddShift: (LocalDate) -> Unit,
+    onEditShift: (Shift) -> Unit
 ) {
     val ui by vm.uiState.collectAsState()
     val nf = remember { NumberFormat.getCurrencyInstance(Locale("he","IL")) }
@@ -86,7 +88,8 @@ fun MonthlyScreen(
                     items(ui.shifts) { s ->
                         ShiftRowCompact(
                             s = s,
-                            onDelete = { id -> vm.deleteShift(id) }
+                            onDelete = { id -> vm.deleteShift(id) },
+                            onShiftClick = onEditShift
                         )
                     }
                 }
@@ -191,11 +194,14 @@ private fun EmptyState(onAdd: () -> Unit) {
 @Composable
 private fun ShiftRowCompact(
     s: Shift,
-    onDelete: (Long) -> Unit
+    onDelete: (Long) -> Unit,
+    onShiftClick: (Shift) -> Unit
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    ElevatedCard {
+    ElevatedCard(
+        modifier = Modifier.clickable { onShiftClick(s) }
+    ) {
         Column(
             Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)

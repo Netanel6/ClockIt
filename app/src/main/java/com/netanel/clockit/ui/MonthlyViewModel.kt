@@ -56,6 +56,7 @@ class MonthlyViewModel(
     fun goTo(ym: YearMonth) { _month.value = ym }
 
     fun addShift(shift: Shift) = viewModelScope.launch { repo.addShift(shift) }
+    fun updateShift(shift: Shift) = viewModelScope.launch { repo.updateShift(shift) }
     fun deleteShift(id: Long) = viewModelScope.launch { repo.deleteShift(id) }
 
     private fun calcSummary(shifts: List<Shift>, profile: CalcProfile, ym: YearMonth): MonthlySummary {
