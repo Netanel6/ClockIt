@@ -8,5 +8,5 @@ data class CalcInput(
     val isHolidayOrShabbat: Boolean,
     val km: Double,
     val callouts: Int,
-    val stolenFound: Int
+    val caughtFound: Int
 )

@@ -83,8 +83,8 @@ fun AddShiftDialog(
     var callouts by remember(editingShift?.id) {
         mutableIntStateOf(editingShift?.callouts ?: 0)
     }
-    var stolen by remember(editingShift?.id) {
-        mutableIntStateOf(editingShift?.stolenFound ?: 0)
+    var caught by remember(editingShift?.id) {
+        mutableIntStateOf(editingShift?.caughtFound ?: 0)
     }
     var isHoliday by remember(editingShift?.id) {
         mutableStateOf(editingShift?.isHolidayOrShabbat ?: false)
@@ -200,9 +200,9 @@ fun AddShiftDialog(
                 )
 
                 IntField(
-                    label = "מס' מציאות רכב גנוב",
-                    value = stolen,
-                    onValueChange = { stolen = it }
+                    label = "מס' מציאות רכב נתפס",
+                    value = caught,
+                    onValueChange = { caught = it }
                 )
 
                 Row(
@@ -256,7 +256,7 @@ fun AddShiftDialog(
                             km = kmVal,
                             engineCc = engineCc,
                             callouts = callouts,
-                            stolenFound = stolen
+                            caughtFound = caught
                         ) ?: Shift(
                             date = date,
                             hourlyRate = hourly,
@@ -265,7 +265,7 @@ fun AddShiftDialog(
                             km = kmVal,
                             engineCc = engineCc,
                             callouts = callouts,
-                            stolenFound = stolen
+                            caughtFound = caught
                         )
 
                         onSave(result)

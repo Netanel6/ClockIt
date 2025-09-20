@@ -11,5 +11,5 @@ data class Shift(
     val km: Double,
     val engineCc: Int = 2000,
     val callouts: Int,
-    val stolenFound: Int
+    val caughtFound: Int
 )

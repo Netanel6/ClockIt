@@ -15,13 +15,13 @@
     <string name="pdf_col_engine_cc">סמ&quot;ק</string>
     <string name="pdf_col_hourly_rate">₪/שעה</string>
     <string name="pdf_col_callouts">הקפצות</string>
-    <string name="pdf_col_stolen">גנוב</string>
+    <string name="pdf_col_caught">נתפס</string>
     <string name="pdf_summary_header">סיכום</string>
     <string name="pdf_total_base">בסיס</string>
     <string name="pdf_total_ot1">נוספות 1</string>
     <string name="pdf_total_ot2">נוספות 2</string>
     <string name="pdf_total_travel">נסיעות</string>
     <string name="pdf_total_callouts">הקפצות</string>
-    <string name="pdf_total_stolen">גנוב</string>
+    <string name="pdf_total_caught">נתפס</string>
     <string name="pdf_total_grand">סה"כ</string>
 </resources>

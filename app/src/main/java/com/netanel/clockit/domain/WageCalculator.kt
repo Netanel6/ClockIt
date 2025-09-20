@@ -10,7 +10,7 @@ class WageCalculator {
         km: Double,
         engineCc: Int,                     // ← חדש
         callouts: Int,
-        stolenFound: Int,
+        caughtFound: Int,
         profile: CalcProfile
     ): CalcResult {
         val holidayMul = if (isHolidayOrShabbat) profile.holidayMultiplier else 1.0
@@ -35,9 +35,9 @@ class WageCalculator {
         val travel = kmRate * km
 
         val calloutsPay = profile.calloutRate * callouts
-        val stolen = profile.stolenBonus * stolenFound
+        val caught = profile.caughtBonus * caughtFound
 
-        val total = base + ot1 + ot2 + travel + calloutsPay + stolen
-        return CalcResult(base, ot1, ot2, travel, calloutsPay, stolen, total)
+        val total = base + ot1 + ot2 + travel + calloutsPay + caught
+        return CalcResult(base, ot1, ot2, travel, calloutsPay, caught, total)
     }
 }

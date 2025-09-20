@@ -6,6 +6,6 @@ data class CalcResult(
     val overtime2Pay: Double,
     val travelPay: Double,
     val calloutsPay: Double,
-    val stolenBonusPay: Double,
+    val caughtBonusPay: Double,
     val total: Double
 )

@@ -5,7 +5,7 @@ data class CalcProfile(
 
     // ערכי ברירת מחדל לשאר התוספות
     val calloutRate: Double = 225.0,
-    val stolenBonus: Double = 225.0,
+    val caughtBonus: Double = 225.0,
 
     val regularDailyThreshold: Double = 8.0,
     val overtime1Multiplier: Double = 1.25,

@@ -1,5 +1,7 @@
 package com.netanel.clockit.ui.month
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -7,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,10 +21,12 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -37,13 +42,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.netanel.clockit.model.MonthlySummary
 import com.netanel.clockit.model.Shift
 import com.netanel.clockit.ui.MonthPicker
 import java.text.NumberFormat
 import java.time.LocalDate
 import java.util.Locale
+
+private enum class MonthlyPage { Summary, Shifts }
 
 @Composable
 fun MonthlyScreen(
@@ -52,103 +61,283 @@ fun MonthlyScreen(
     onEditShift: (Shift) -> Unit
 ) {
     val ui by vm.uiState.collectAsState()
-    val nf = remember { NumberFormat.getCurrencyInstance(Locale("he","IL")) }
+    val locale = remember { Locale("he", "IL") }
+    val currencyFormat = remember(locale) { NumberFormat.getCurrencyInstance(locale) }
+    val percentFormat = remember(locale) {
+        NumberFormat.getPercentInstance(locale).apply { maximumFractionDigits = 0 }
+    }
+    var page by remember { mutableStateOf(MonthlyPage.Summary) }
 
-    // תווית מחזור: "מחזור 23 {חודש קודם} – 22 {חודש נוכחי} {שנה}"
+    val addShiftToday = { onAddShift(LocalDate.now()) }
+    val quickCalloutToday = { vm.quickAddCalloutForDate(LocalDate.now()) }
+
     Box(Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // ניווט בין חודשים
-            MonthPicker(month = ui.month, onPrev = vm::prevMonth, onNext = vm::nextMonth)
+        Crossfade(targetState = page, modifier = Modifier.fillMaxSize(), label = "monthly_page") { current ->
+            when (current) {
+                MonthlyPage.Summary -> MonthlySummaryPage(
+                    ui = ui,
+                    currencyFormat = currencyFormat,
+                    percentFormat = percentFormat,
+                    onPrevMonth = vm::prevMonth,
+                    onNextMonth = vm::nextMonth,
+                    onAddShift = addShiftToday,
+                    onQuickCallout = { quickCalloutToday() },
+                    onViewShifts = { page = MonthlyPage.Shifts }
+                )
 
-            // סיכום למחזור
-            SummaryCard(
-                base = nf.format(ui.summary.totalBase),
-                ot1 = nf.format(ui.summary.totalOt1),
-                ot2 = nf.format(ui.summary.totalOt2),
-                travel = nf.format(ui.summary.totalTravel),
-                callouts = nf.format(ui.summary.totalCallouts),
-                stolen = nf.format(ui.summary.totalStolen),
-                total = nf.format(ui.summary.grandTotal)
-            )
-
-            // רשימת משמרות / מצב ריק
-            if (ui.shifts.isEmpty()) {
-                EmptyState(onAdd = { onAddShift(LocalDate.now()) })
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(bottom = 96.dp) // מקום ל-FAB-ים
-                ) {
-                    items(ui.shifts) { s ->
-                        ShiftRowCompact(
-                            s = s,
-                            onDelete = { id -> vm.deleteShift(id) },
-                            onShiftClick = onEditShift
-                        )
-                    }
-                }
+                MonthlyPage.Shifts -> MonthlyShiftsPage(
+                    ui = ui,
+                    onPrevMonth = vm::prevMonth,
+                    onNextMonth = vm::nextMonth,
+                    onAddShift = addShiftToday,
+                    onEditShift = onEditShift,
+                    onDeleteShift = vm::deleteShift,
+                    onBackToSummary = { page = MonthlyPage.Summary }
+                )
             }
         }
 
-        // FAB-ים מוערמים
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalAlignment = Alignment.End
-        ) {
-            // הקפצה בלבד (היום)
-            ExtendedFloatingActionButton(
-                onClick = { vm.quickAddCalloutForDate(LocalDate.now()) },
-                content = {
-                     Text("הקפצה היום")
+        if (page == MonthlyPage.Shifts) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalAlignment = Alignment.End
+            ) {
+                ExtendedFloatingActionButton(onClick = { quickCalloutToday() }) {
+                    Text("הוסף הקפצה להיום")
                 }
-            )
-            // הוספת משמרת (דיאלוג)
-            FloatingActionButton(onClick = { onAddShift(LocalDate.now()) }) {
-                Icon(Icons.Filled.Add, contentDescription = "הוסף משמרת")
+                FloatingActionButton(onClick = addShiftToday) {
+                    Icon(Icons.Filled.Add, contentDescription = "הוסף משמרת")
+                }
             }
         }
     }
 }
 
 @Composable
-private fun SummaryCard(
-    base: String,
-    ot1: String,
-    ot2: String,
-    travel: String,
-    callouts: String,
-    stolen: String,
-    total: String
+private fun MonthlySummaryPage(
+    ui: MonthlyViewModel.UiState,
+    currencyFormat: NumberFormat,
+    percentFormat: NumberFormat,
+    onPrevMonth: () -> Unit,
+    onNextMonth: () -> Unit,
+    onAddShift: () -> Unit,
+    onQuickCallout: () -> Unit,
+    onViewShifts: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        MonthPicker(month = ui.month, onPrev = onPrevMonth, onNext = onNextMonth)
+
+        MonthlySummaryCard(
+            summary = ui.summary,
+            currencyFormat = currencyFormat,
+            percentFormat = percentFormat
+        )
+
+        if (ui.shifts.isEmpty()) {
+            Text(
+                "עוד לא נוספו משמרות למחזור זה.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(1f, fill = true))
+
+        FilledTonalButton(
+            onClick = onViewShifts,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("צפה במשמרות")
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedButton(
+                onClick = onAddShift,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("הוסף משמרת חדשה")
+            }
+
+            OutlinedButton(
+                onClick = onQuickCallout,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("הוסף הקפצה להיום")
+            }
+        }
+    }
+}
+
+@Composable
+private fun MonthlyShiftsPage(
+    ui: MonthlyViewModel.UiState,
+    onPrevMonth: () -> Unit,
+    onNextMonth: () -> Unit,
+    onAddShift: () -> Unit,
+    onEditShift: (Shift) -> Unit,
+    onDeleteShift: (Long) -> Unit,
+    onBackToSummary: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        MonthPicker(month = ui.month, onPrev = onPrevMonth, onNext = onNextMonth)
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("משמרות", style = MaterialTheme.typography.titleMedium)
+            TextButton(onClick = onBackToSummary) {
+                Text("חזרה לסיכום")
+            }
+        }
+
+        if (ui.shifts.isEmpty()) {
+            Box(modifier = Modifier.weight(1f, fill = true)) {
+                EmptyState(onAdd = onAddShift)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.weight(1f, fill = true),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(bottom = 96.dp)
+            ) {
+                items(ui.shifts) { s ->
+                    ShiftRowCompact(
+                        s = s,
+                        onDelete = onDeleteShift,
+                        onShiftClick = onEditShift
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MonthlySummaryCard(
+    summary: MonthlySummary,
+    currencyFormat: NumberFormat,
+    percentFormat: NumberFormat
 ) {
     ElevatedCard {
         Column(
-            Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("סיכום חודשי", style = MaterialTheme.typography.titleMedium)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                SummaryChip("בסיס", base, Modifier.weight(1f))
-                SummaryChip("נוספות 1", ot1, Modifier.weight(1f))
-                SummaryChip("נוספות 2", ot2, Modifier.weight(1f))
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("סיכום חודשי", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    currencyFormat.format(summary.grandTotal),
+                    style = MaterialTheme.typography.headlineSmall
+                )
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                SummaryChip("נסיעות", travel, Modifier.weight(1f))
-                SummaryChip("הקפצות", callouts, Modifier.weight(1f))
-                SummaryChip("גנוב", stolen, Modifier.weight(1f))
-            }
+
+            PayoutDistributionChart(
+                summary = summary,
+                currencyFormat = currencyFormat,
+                percentFormat = percentFormat
+            )
+
             Divider()
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("סה\"כ לתשלום", style = MaterialTheme.typography.titleLarge)
-                Text(total, style = MaterialTheme.typography.titleLarge)
+
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    SummaryChip("בסיס", currencyFormat.format(summary.totalBase), Modifier.weight(1f))
+                    SummaryChip("נוספות 1", currencyFormat.format(summary.totalOt1), Modifier.weight(1f))
+                    SummaryChip("נוספות 2", currencyFormat.format(summary.totalOt2), Modifier.weight(1f))
+                }
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    SummaryChip("נסיעות", currencyFormat.format(summary.totalTravel), Modifier.weight(1f))
+                    SummaryChip("הקפצות", currencyFormat.format(summary.totalCallouts), Modifier.weight(1f))
+                    SummaryChip("נתפס", currencyFormat.format(summary.totalCaught), Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PayoutDistributionChart(
+    summary: MonthlySummary,
+    currencyFormat: NumberFormat,
+    percentFormat: NumberFormat,
+    modifier: Modifier = Modifier
+) {
+    val entries = listOf(
+        Triple("בסיס", summary.totalBase, MaterialTheme.colorScheme.primary),
+        Triple("נוספות 1", summary.totalOt1, MaterialTheme.colorScheme.secondary),
+        Triple("נוספות 2", summary.totalOt2, MaterialTheme.colorScheme.tertiary),
+        Triple("נסיעות", summary.totalTravel, MaterialTheme.colorScheme.primaryContainer),
+        Triple("הקפצות", summary.totalCallouts, MaterialTheme.colorScheme.secondaryContainer),
+        Triple("נתפס", summary.totalCaught, MaterialTheme.colorScheme.tertiaryContainer)
+    )
+    val total = entries.sumOf { it.second }.coerceAtLeast(0.0)
+
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (total <= 0.0) {
+            Text(
+                "אין נתונים להצגה לחודש זה",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            entries.filter { it.second > 0.0 }.forEach { (label, amount, color) ->
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(label, style = MaterialTheme.typography.labelLarge)
+                        val percentText = percentFormat.format(amount / total)
+                        Text(
+                            "${currencyFormat.format(amount)} • $percentText",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(MaterialTheme.shapes.small)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth((amount / total).toFloat())
+                                .background(color)
+                        )
+                    }
+                }
             }
         }
     }
@@ -184,9 +373,9 @@ private fun EmptyState(onAdd: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text("אין משמרות במחזור זה", style = MaterialTheme.typography.titleMedium)
-            Text("לחץ על הפלוס כדי להזין יום עבודה.", style = MaterialTheme.typography.bodyMedium)
+            Text("לחץ על הכפתור כדי להזין יום עבודה.", style = MaterialTheme.typography.bodyMedium)
             Spacer(Modifier.height(8.dp))
-            OutlinedButton(onClick = onAdd) { Text("הוסף משמרת") }
+            Button(onClick = onAdd) { Text("הוסף משמרת") }
         }
     }
 }
@@ -206,7 +395,6 @@ private fun ShiftRowCompact(
             Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            // כותרת: תאריך + שבת/חג + מחיקה
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -227,7 +415,6 @@ private fun ShiftRowCompact(
                 }
             }
 
-            // פרטים
             Text(
                 "משך: %02d:%02d • ק\"מ: %.2f • סמ\"ק: %d".format(
                     s.workedMinutes / 60,
@@ -243,13 +430,15 @@ private fun ShiftRowCompact(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("₪/שעה: ${"%.2f".format(Locale("he","IL"), s.hourlyRate)}")
-                Text("הקפצות: ${s.callouts} • גנוב: ${s.stolenFound}", style = MaterialTheme.typography.labelMedium)
+                Text("₪/שעה: ${"%.2f".format(Locale("he", "IL"), s.hourlyRate)}")
+                Text(
+                    "הקפצות: ${s.callouts} • נתפס: ${s.caughtFound}",
+                    style = MaterialTheme.typography.labelMedium
+                )
             }
         }
     }
 
-    // דיאלוג אישור מחיקה
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
