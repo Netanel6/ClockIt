@@ -16,7 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.outlined.PictureAsPdf
+import androidx.compose.material.icons.outlined.Menu
+
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -58,10 +59,11 @@ import java.io.File
 import java.time.LocalDate
 import java.time.YearMonth
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.collectAsState
 
 class MainActivity : ComponentActivity() {
     companion object {
-        private const val TAG = "MainActivity"
+        internal const val TAG = "MainActivity"
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -111,7 +113,7 @@ class MainActivity : ComponentActivity() {
                                         text = { Text(stringResource(R.string.export_to_pdf)) },
                                         leadingIcon = {
                                             Icon(
-                                                imageVector = Icons.Outlined.PictureAsPdf,
+                                                imageVector = Icons.Outlined.Menu,
                                                 contentDescription = null
                                             )
                                         },
@@ -162,7 +164,7 @@ class MainActivity : ComponentActivity() {
                         if (showAdd) {
                             AddShiftDialog(
                                 initialDate = initialDate,
-                                defaultHourly =  monthlyVm.profile.value.hourlyRate,
+                                defaultHourly =  monthlyVm.profile.collectAsState().value.hourlyRate,
                                 existingShift = editingShift,
                                 onDismiss = {
                                     showAdd = false
