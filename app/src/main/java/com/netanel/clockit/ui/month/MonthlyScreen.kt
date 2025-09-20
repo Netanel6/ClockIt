@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -82,7 +81,7 @@ fun MonthlyScreen(
                     onPrevMonth = vm::prevMonth,
                     onNextMonth = vm::nextMonth,
                     onAddShift = addShiftToday,
-                    onQuickCallout = quickCalloutToday,
+                    onQuickCallout = { quickCalloutToday() },
                     onViewShifts = { page = MonthlyPage.Shifts }
                 )
 
@@ -106,7 +105,7 @@ fun MonthlyScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalAlignment = Alignment.End
             ) {
-                ExtendedFloatingActionButton(onClick = quickCalloutToday) {
+                ExtendedFloatingActionButton(onClick = { quickCalloutToday() }) {
                     Text("הוסף הקפצה להיום")
                 }
                 FloatingActionButton(onClick = addShiftToday) {
