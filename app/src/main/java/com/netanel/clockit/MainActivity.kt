@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.netanel.clockit.data.ShiftRepository
+import com.netanel.clockit.model.Shift
 import com.netanel.clockit.ui.month.AddShiftDialog
 import com.netanel.clockit.ui.month.MonthlyScreen
 import com.netanel.clockit.ui.month.MonthlyViewModel
@@ -38,6 +39,7 @@ class MainActivity : ComponentActivity() {
 
                 var showAdd by remember { mutableStateOf(false) }
                 var initialDate by remember { mutableStateOf(LocalDate.now()) }
+                var editingShift by remember { mutableStateOf<Shift?>(null) }
 
                 Scaffold(
                     topBar = { TopAppBar(title = { Text("ClockIt – חישוב חודשי") }) }
@@ -46,7 +48,13 @@ class MainActivity : ComponentActivity() {
                         MonthlyScreen(
                             vm = monthlyVm,
                             onAddShift = { date ->
+                                editingShift = null
                                 initialDate = date
+                                showAdd = true
+                            },
+                            onEditShift = { shift ->
+                                editingShift = shift
+                                initialDate = shift.date
                                 showAdd = true
                             }
                         )
@@ -54,10 +62,20 @@ class MainActivity : ComponentActivity() {
                             AddShiftDialog(
                                 initialDate = initialDate,
                                 defaultHourly =  monthlyVm.profile.value.hourlyRate,
-                                onDismiss = { showAdd = false },
-                                onSave = { shift ->
+                                existingShift = editingShift,
+                                onDismiss = {
                                     showAdd = false
-                                    monthlyVm.addShift(shift)
+                                    editingShift = null
+                                },
+                                onSave = { shift ->
+                                    val isEditing = editingShift != null
+                                    showAdd = false
+                                    editingShift = null
+                                    if (isEditing) {
+                                        monthlyVm.updateShift(shift)
+                                    } else {
+                                        monthlyVm.addShift(shift)
+                                    }
                                 }
                             )
                         }
