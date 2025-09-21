@@ -1,5 +1,4 @@
-// MonthlyViewModel.kt
-package com.netanel.clockit.ui.month
+package com.netanel.clockit.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

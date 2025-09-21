@@ -50,7 +50,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.netanel.clockit.model.Shift
 import com.netanel.clockit.ui.month.AddShiftDialog
 import com.netanel.clockit.ui.month.MonthlyScreen
-import com.netanel.clockit.ui.month.MonthlyViewModel
+import com.netanel.clockit.ui.MonthlyViewModel
 import com.netanel.clockit.ui.theme.ClockItTheme
 import com.netanel.clockit.utils.PdfExporter
 import java.io.File
