@@ -1,8 +1,9 @@
 package com.netanel.clockit.domain
 
 import com.netanel.clockit.model.*
+import javax.inject.Inject
 
-class WageCalculator {
+class WageCalculator @Inject constructor() {
     fun calculateFromMinutes(
         workedMinutes: Int,
         hourlyRate: Double,

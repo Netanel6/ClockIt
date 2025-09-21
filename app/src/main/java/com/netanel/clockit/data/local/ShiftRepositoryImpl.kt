@@ -5,8 +5,11 @@ import com.netanel.clockit.model.Shift
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class ShiftRepositoryImpl(private val dao: ShiftDao) : ShiftRepository {
+@Singleton
+class ShiftRepositoryImpl @Inject constructor(private val dao: ShiftDao) : ShiftRepository {
 
     override suspend fun addShift(shift: Shift): Long = dao.insert(shift.toEntity())
 
