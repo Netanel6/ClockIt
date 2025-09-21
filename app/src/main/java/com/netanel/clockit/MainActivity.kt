@@ -33,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,23 +45,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.core.content.FileProvider
-import com.netanel.clockit.data.ShiftRepository
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.netanel.clockit.model.Shift
 import com.netanel.clockit.ui.month.AddShiftDialog
 import com.netanel.clockit.ui.month.MonthlyScreen
-import com.netanel.clockit.ui.month.MonthlyViewModel
+import com.netanel.clockit.ui.MonthlyViewModel
 import com.netanel.clockit.ui.theme.ClockItTheme
 import com.netanel.clockit.utils.PdfExporter
 import java.io.File
 import java.time.LocalDate
-import java.time.YearMonth
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.collectAsState
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     companion object {
         internal const val TAG = "MainActivity"
@@ -70,17 +68,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val db = AppDI.provideDb(this)
-        val repo: ShiftRepository = AppDI.provideRepo(db)
-
         setContent {
             ClockItTheme {
-                val monthlyVm: MonthlyViewModel = viewModel(factory = object : ViewModelProvider.Factory {
-                    @Suppress("UNCHECKED_CAST")
-                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                        return MonthlyViewModel(repo, initialMonth = YearMonth.now()) as T
-                    }
-                })
+                val monthlyVm: MonthlyViewModel = hiltViewModel()
 
                 var showAdd by remember { mutableStateOf(false) }
                 var initialDate by remember { mutableStateOf(LocalDate.now()) }

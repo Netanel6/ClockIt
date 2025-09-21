@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import com.netanel.clockit.model.MonthlySummary
 import com.netanel.clockit.model.Shift
 import com.netanel.clockit.ui.MonthPicker
+import com.netanel.clockit.ui.MonthlyViewModel
 import java.text.NumberFormat
 import java.time.LocalDate
 import java.util.Locale

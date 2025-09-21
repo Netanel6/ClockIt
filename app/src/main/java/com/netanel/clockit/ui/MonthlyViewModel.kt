@@ -1,5 +1,4 @@
-// MonthlyViewModel.kt
-package com.netanel.clockit.ui.month
+package com.netanel.clockit.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,21 +7,23 @@ import com.netanel.clockit.domain.WageCalculator
 import com.netanel.clockit.model.CalcProfile
 import com.netanel.clockit.model.MonthlySummary
 import com.netanel.clockit.model.Shift
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
 
-class MonthlyViewModel(
+@HiltViewModel
+class MonthlyViewModel @Inject constructor(
     private val repo: ShiftRepository,
-    private val calculator: WageCalculator = WageCalculator(),
-    initialMonth: YearMonth = YearMonth.now()
+    private val calculator: WageCalculator
 ) : ViewModel() {
 
     private val _profile = MutableStateFlow(CalcProfile())
     val profile: StateFlow<CalcProfile> = _profile.asStateFlow()
 
-    private val _month = MutableStateFlow(initialMonth) // מייצג את חודש ה"סיום" (22 בו)
+    private val _month = MutableStateFlow(YearMonth.now()) // מייצג את חודש ה"סיום" (22 בו)
     val month: StateFlow<YearMonth> = _month.asStateFlow()
 
     data class UiState(
